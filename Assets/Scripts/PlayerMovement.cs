@@ -8,8 +8,9 @@ public class PlayerMovement : MonoBehaviour
 
     private Rigidbody2D rb;
     private Animator anim;
-    private int groundContacts = 0;
     private bool isGrounded;
+    private bool isFacingRight = true;
+    private float shootDirectionLockTimer = 0f;
 
     private void Awake()
     {
@@ -22,6 +23,17 @@ public class PlayerMovement : MonoBehaviour
         Move();
         Jump();
         HandleAnimations();
+
+        // ✅ Reduce shooting lock timer
+        if (shootDirectionLockTimer > 0)
+        {
+            shootDirectionLockTimer -= Time.deltaTime;
+        }
+        else
+        {
+            // ✅ Restore facing based on movement after timer ends
+            HandleMovementBasedFlipping();
+        }
     }
 
     private void Move()
@@ -29,9 +41,20 @@ public class PlayerMovement : MonoBehaviour
         float moveInput = Input.GetAxis("Horizontal");
         rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
 
-        // Flip sprite based on movement direction
-        if (moveInput > 0) GetComponent<SpriteRenderer>().flipX = false;
-        else if (moveInput < 0) GetComponent<SpriteRenderer>().flipX = true;
+        // ✅ Flip based on movement only if NOT locked by shooting
+        if (shootDirectionLockTimer <= 0)
+        {
+            if (moveInput > 0)
+            {
+                isFacingRight = true;
+                GetComponent<SpriteRenderer>().flipX = false;
+            }
+            else if (moveInput < 0)
+            {
+                isFacingRight = false;
+                GetComponent<SpriteRenderer>().flipX = true;
+            }
+        }
     }
 
     private void Jump()
@@ -46,31 +69,37 @@ public class PlayerMovement : MonoBehaviour
     {
         bool isMoving = Mathf.Abs(rb.velocity.x) > 0.1f;
 
-        // Handle shooting logic
-        if (anim.GetBool("isShooting") && (isMoving || !isGrounded))
-        {
-            anim.SetBool("isShooting", false);
-        }
-
-        // Set animation parameters
         anim.SetBool("isRunning", isMoving && isGrounded);
         anim.SetBool("isJumping", !isGrounded);
-
-        // Shooting input
-        if (Input.GetKeyDown(KeyCode.F) && isGrounded && !isMoving)
-        {
-            anim.SetBool("isShooting", true);
-            Invoke(nameof(ResetShooting), 0.2f);
-        }
     }
 
-    private void ResetShooting() => anim.SetBool("isShooting", false);
+    // ✅ Lock facing direction for shooting
+    public void LockFacingDirection(float duration, bool facingRight)
+    {
+        shootDirectionLockTimer = duration;
+        GetComponent<SpriteRenderer>().flipX = !facingRight;
+    }
+
+    private void HandleMovementBasedFlipping()
+    {
+        float moveInput = Input.GetAxis("Horizontal");
+
+        if (moveInput > 0)
+        {
+            isFacingRight = true;
+            GetComponent<SpriteRenderer>().flipX = false;
+        }
+        else if (moveInput < 0)
+        {
+            isFacingRight = false;
+            GetComponent<SpriteRenderer>().flipX = true;
+        }
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
-            groundContacts++;
             isGrounded = true;
         }
     }
@@ -79,8 +108,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
-            groundContacts--;
-            isGrounded = groundContacts > 0;
+            isGrounded = false;
         }
     }
 }

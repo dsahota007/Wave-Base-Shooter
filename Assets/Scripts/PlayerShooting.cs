@@ -3,34 +3,40 @@ using System.Collections;
 
 public class PlayerShooting : MonoBehaviour
 {
-    public GameObject gun;  // Gun GameObject
-    public GameObject bulletPrefab;  // Bullet Prefab
-    public Transform firePoint;  // FirePoint (where bullets spawn)
-    public Animator shootVFXAnimator; // VFX Animator on separate object
-    public GameObject shootVFX; // VFX Object
+    public GameObject gun;
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public Animator shootVFXAnimator;
+    public GameObject shootVFX;
 
-    public float bulletSpeed = 15f;
+    public float bulletSpeed = 15f; // ✅ Restored original bullet speed
     public float gunShowTime = 0.2f;
     public float recoilAmount = 0.2f;
     public float recoilSpeed = 0.1f;
     public float bobSpeed = 6f;
     public float bobAmount = 0.04f;
+    public float shootDirectionLockTime = 0.10f; // ✅ Shortened to 0.10 seconds
 
     private SpriteRenderer gunSpriteRenderer;
+    private SpriteRenderer playerSpriteRenderer;
     private Vector3 originalGunPosition;
     private bool isRecoiling = false;
+    private PlayerMovement playerMovement;
 
     private void Start()
     {
         gunSpriteRenderer = gun.GetComponent<SpriteRenderer>();
+        playerSpriteRenderer = GetComponent<SpriteRenderer>();
         originalGunPosition = gun.transform.localPosition;
-        gun.SetActive(true); // Gun is always visible
+        playerMovement = GetComponent<PlayerMovement>();
+        gun.SetActive(true);
     }
 
     private void Update()
     {
         AimGunAtMouse();
 
+        // ✅ SHOOT when left mouse button is clicked
         if (Input.GetMouseButtonDown(0))
         {
             Shoot();
@@ -52,7 +58,7 @@ public class PlayerShooting : MonoBehaviour
 
         gun.transform.rotation = Quaternion.Euler(0, 0, angle);
 
-        // 🔥 Mirror gun if facing left
+        // ✅ Flip gun based on mouse position
         if (mousePos.x < transform.position.x)
         {
             gunSpriteRenderer.flipY = true;
@@ -71,36 +77,19 @@ public class PlayerShooting : MonoBehaviour
 
         StartCoroutine(RecoilAnimation());
 
-        // 🔥 Create a new VFX instance every time
-        GameObject newVFX = Instantiate(shootVFX, firePoint.position, Quaternion.identity);
-        newVFX.SetActive(true);
-        newVFX.transform.localScale = new Vector3(2f, 2f, 1f);
-
-        // 🔥 Offset the VFX slightly in random positions
-        Vector3 vfxOffset = new Vector3(Random.Range(-0.2f, 0.2f), Random.Range(-0.1f, 0.1f), 0);
-        newVFX.transform.position += vfxOffset;
-
-        // 🔥 Randomize ShootVFX Animation
-        int randomShoot = Random.Range(1, 5);
-        Animator vfxAnimator = newVFX.GetComponent<Animator>();
-        vfxAnimator.SetInteger("ShootVariant", randomShoot);
-
-        // 🔥 Destroy the VFX object after animation completes
-        Destroy(newVFX, 0.5f);
-
-        // 🔥 Get mouse position for bullet direction
+        // ✅ Flip player based on shooting direction
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePos.z = 0;
+        bool facingRight = mousePos.x > transform.position.x;
 
-        // 🔥 Calculate direction to mouse
+        // ✅ Lock facing for at least 0.10 seconds
+        playerMovement.LockFacingDirection(shootDirectionLockTime, facingRight);
+
+        // ✅ Create Bullet (RESTORED ORIGINAL BEHAVIOR)
         Vector2 shootDirection = (mousePos - firePoint.position).normalized;
-
-        // 🔥 Spawn Bullet & Set Direction
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
         rb.velocity = shootDirection * bulletSpeed;
 
-        // 🔥 Rotate Bullet to Face Mouse Direction
         float angle = Mathf.Atan2(shootDirection.y, shootDirection.x) * Mathf.Rad2Deg;
         bullet.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
@@ -109,22 +98,20 @@ public class PlayerShooting : MonoBehaviour
     {
         isRecoiling = true;
 
-        // 🔥 Move gun backward
         Vector3 recoilPosition = originalGunPosition + gun.transform.right * -recoilAmount;
         float elapsedTime = 0f;
 
         while (elapsedTime < recoilSpeed)
         {
-            gun.transform.localPosition = Vector3.Lerp(originalGunPosition, recoilPosition, (elapsedTime / recoilSpeed));
+            gun.transform.localPosition = Vector3.Lerp(originalGunPosition, recoilPosition, elapsedTime / recoilSpeed);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
-        // 🔥 Return gun to original position
         elapsedTime = 0f;
         while (elapsedTime < recoilSpeed)
         {
-            gun.transform.localPosition = Vector3.Lerp(recoilPosition, originalGunPosition, (elapsedTime / recoilSpeed));
+            gun.transform.localPosition = Vector3.Lerp(recoilPosition, originalGunPosition, elapsedTime / recoilSpeed);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
@@ -134,7 +121,6 @@ public class PlayerShooting : MonoBehaviour
 
     void BobGun()
     {
-        // 🔥 Make the gun bob up and down using Sin wave
         float bobOffset = Mathf.Sin(Time.time * bobSpeed) * bobAmount;
         gun.transform.localPosition = originalGunPosition + new Vector3(0, bobOffset, 0);
     }

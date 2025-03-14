@@ -5269,7 +5269,7 @@ Transform:
   m_GameObject: {fileID: 129374560}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.29046008, w: -0.9568872}
-  m_LocalPosition: {x: 0.010000209, y: 1.8699998, z: 0}
+  m_LocalPosition: {x: -0.06, y: -0.11, z: 0}
   m_LocalScale: {x: 0.95805866, y: 1.0441434, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18175,8 +18175,8 @@ Transform:
   m_GameObject: {fileID: 1396077113}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.7898903, w: 0.6132482}
-  m_LocalPosition: {x: 0.00010000711, y: 0.0005000288, z: 0.1}
-  m_LocalScale: {x: 0.05, y: 0.05, z: 1}
+  m_LocalPosition: {x: 0.00010000711, y: -0.06, z: 0.1}
+  m_LocalScale: {x: 0.11, y: 0.14, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 129374561}
@@ -21929,12 +21929,13 @@ MonoBehaviour:
   firePoint: {fileID: 129374561}
   shootVFXAnimator: {fileID: 820486356}
   shootVFX: {fileID: 820486354}
-  bulletSpeed: 15
+  bulletSpeed: 35
   gunShowTime: 0.2
   recoilAmount: 0.09
   recoilSpeed: 0.03
   bobSpeed: 3
   bobAmount: 0.01
+  shootDirectionLockTime: 1.89
 --- !u!114 &2136356655
 MonoBehaviour:
   m_ObjectHideFlags: 0

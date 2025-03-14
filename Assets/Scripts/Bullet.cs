@@ -2,25 +2,23 @@
 
 public class Bullet : MonoBehaviour
 {
-    public float lifetime = 2f;  // Bullet disappears after 2 seconds
+    public float lifetime = 2f; 
 
     private void Start()
     {
-        Destroy(gameObject, lifetime);  // Auto-destroy bullet after time
+        Destroy(gameObject, lifetime);  
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log("Bullet hit: " + collision.gameObject.name);  // ✅ Debug what bullet hits
+        Debug.Log("Bullet hit: " + collision.gameObject.name);  
 
-        // 🔥 Destroy bullet if it hits an enemy
         if (collision.CompareTag("Enemy"))
         {
             Debug.Log("Bullet hit an ENEMY!");
-            collision.GetComponent<EnemyAI>().TakeDamage(); // Damage enemy
+            collision.GetComponent<EnemyAI>().TakeDamage(); 
             //Destroy(gameObject);
         }
 
-        // 🔥 Destroy bullet if it hits ground or any other specific tag
         if (collision.CompareTag("Ground"))
         {
             Debug.Log("Bullet hit the GROUND!");
