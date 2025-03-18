@@ -1,41 +1,42 @@
-﻿using UnityEngine;
-using TMPro;
+﻿using TMPro;
+using UnityEngine;
 
 public class MysteryBox : MonoBehaviour
 {
-    public TextMeshProUGUI interactionText; // Assign the text in the Inspector
-    public float interactionDistance = 2f;
+    public TextMeshPro interactionText;
+
+    public SpriteRenderer boxSpriteRenderer;
+    public Sprite closedBoxSprite;
+    public Sprite openBoxSprite;
+
     private bool isPlayerNearby = false;
+    private bool isBoxOpened = false;
+    private float resetTimer = 10f; // 10 seconds until reset
 
     private void Start()
     {
+        // ✅ Hide text at the beginning
         interactionText.gameObject.SetActive(false);
+
+        // ✅ Set starting sprite to closed box
+        boxSpriteRenderer.sprite = closedBoxSprite;
     }
 
     private void Update()
     {
-        if (isPlayerNearby)
+        // ✅ Check if player presses "E" when near the box
+        if (isPlayerNearby && Input.GetKeyDown(KeyCode.E) && !isBoxOpened)
         {
-            // Show text when the player is near
-            interactionText.gameObject.SetActive(true);
-
-            // ✅ Open box when player presses 'E'
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                OpenBox();
-            }
-        }
-        else
-        {
-            interactionText.gameObject.SetActive(false);
+            OpenBox();
         }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && !isBoxOpened)
         {
             isPlayerNearby = true;
+            interactionText.gameObject.SetActive(true);
         }
     }
 
@@ -44,12 +45,35 @@ public class MysteryBox : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerNearby = false;
+            interactionText.gameObject.SetActive(false); // ✅ Always hide text on exit
         }
     }
 
     void OpenBox()
     {
         Debug.Log("Mystery Box Opened!");
-        // ✅ Add opening logic here (like giving player a reward)
+
+        isBoxOpened = true;
+
+        // ✅ Switch to open sprite
+        boxSpriteRenderer.sprite = openBoxSprite;
+
+        // ✅ Hide the interaction text COMPLETELY
+        interactionText.gameObject.SetActive(false);
+
+        // ✅ Start reset timer
+        Invoke(nameof(ResetBox), resetTimer);
+    }
+
+    void ResetBox()
+    {
+        Debug.Log("Mystery Box Reset!");
+
+        isBoxOpened = false;
+
+        // ✅ Switch back to closed sprite
+        boxSpriteRenderer.sprite = closedBoxSprite;
+
+        // ✅ Text remains hidden unless the player re-enters the collider
     }
 }
